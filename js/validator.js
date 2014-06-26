@@ -38,7 +38,8 @@
 
     this.toggleSubmit()
 
-    this.$element.on('input.bs.validator change.bs.validator focusout.bs.validator', $.proxy(this.validateInput, this))
+    this.$element.on('focusout.bs.validator', $.proxy(this.validateInput, this))
+    this.$element.on('input.bs.validator change.bs.validator', $.proxy(this.revalidateInput, this))
 
     this.$element.find('[data-match]').each(function () {
       var $this  = $(this)
@@ -70,6 +71,16 @@
     minlength: function ($el) {
       var minlength = $el.data('minlength')
       return !$el.val() || $el.val().length >= minlength
+    }
+  }
+
+  Validator.prototype.revalidateInput = function(e) {
+  	// Only validate on key up and change if the field is already marked with
+  	// an error.  This way, an existing error will clear while the user is
+  	// typing once the input is valid, but an input will never gain an error
+  	// while the user is typing
+    if ($(e.target).data('bs.errors').length > 0) {
+      this.validateInput(e)
     }
   }
 
@@ -121,7 +132,7 @@
     var delay = this.options.delay
 
     this.options.delay = 0
-    this.$element.find(':input').trigger('input')
+    this.$element.find(':input').trigger('focusout')
     this.options.delay = delay
 
     return this
